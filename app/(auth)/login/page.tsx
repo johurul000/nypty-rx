@@ -62,6 +62,7 @@ export default function LoginPage() {
         // 1. The AuthProvider updating context, causing app/page.tsx to redirect.
         // 2. The AuthProvider updating context, causing app/(app)/layout.tsx to grant access.
         router.refresh();
+        router.push("/dashboard")
         // --- END CRITICAL SECTION ---
 
         // NOTE: We DON'T typically put router.push('/dashboard') here.
@@ -157,4 +158,4 @@ export default function LoginPage() {
       </Card>
     </div>
   );
-}
+}   

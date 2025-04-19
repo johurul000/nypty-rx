@@ -81,4 +81,34 @@ export type BillItem = {
     // created_at?
   };
 
-  
+  // types/index.ts
+
+// ... (Store, MasterMedicine, InventoryItem, BillItem, Sale, SaleItem) ...
+
+// From user_settings table
+// Define structure based on your table columns
+export type UserSettings = {
+  id: string;
+  user_id: string;
+  preferences: {
+    // Define specific preferences you might store
+    theme?: 'light' | 'dark' | 'system';
+    notificationsEnabled?: boolean;
+    itemsPerPage?: number;
+    // Add other preferences as needed
+  } | null; // Preferences might be null initially
+  sync_enabled?: boolean | null; // Example setting
+  created_at: string;
+  updated_at?: string | null;
+};
+
+// A version for the form state, allowing partial updates and defaults
+export type SettingsFormData = {
+    id?: string; // Include ID if updating existing record
+    preferences: {
+        theme: 'light' | 'dark' | 'system';
+        notificationsEnabled: boolean;
+        itemsPerPage: number;
+    };
+    sync_enabled: boolean;
+};
