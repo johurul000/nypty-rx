@@ -3,159 +3,177 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'; // For linking to signup page
-import { createClient } from '@/lib/supabase/client'; // Supabase browser client
-import { Button } from "@/components/ui/button"; // Shadcn UI
-import { Input } from "@/components/ui/input";   // Shadcn UI
-import { Label } from "@/components/ui/label";   // Shadcn UI
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; // Shadcn UI
+import Link from 'next/link'; // For linking to signup and forgot password pages
+import Image from 'next/image'; // Import Image component for the logo
+import { createClient } from '@/lib/supabase/client'; // Your Supabase browser client
+import { Button } from "@/components/ui/button"; // Shadcn UI Button
+import { Input } from "@/components/ui/input";   // Shadcn UI Input
+import { Label } from "@/components/ui/label";   // Shadcn UI Label
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; // Shadcn UI Card
 import { toast } from "sonner"; // For notifications
 import { Loader2 } from 'lucide-react'; // Loading icon
 
 export default function LoginPage() {
-  // Initialize Supabase client and Next.js router
+  // --- Hooks Initialization ---
   const supabase = createClient();
-  const router = useRouter();
+  const router = useRouter(); // Next.js router hook
 
-  // State variables for the form
+  // --- State Variables ---
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Tracks loading state for button/inputs
-  const [error, setError] = useState<string | null>(null); // Stores error message to display on page
+  const [isLoading, setIsLoading] = useState(false); // Tracks loading state
+  const [error, setError] = useState<string | null>(null); // Stores on-page error message
 
   // --- Handle Login Form Submission ---
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent default browser form submission
-    setIsLoading(true); // Set loading state
-    setError(null); // Clear previous errors
+    event.preventDefault(); // Prevent default browser form submission behaviour
+    setIsLoading(true); // Indicate loading start
+    setError(null); // Clear any previous errors
 
     try {
-      // Attempt to sign in with Supabase Auth
+      // Attempt Supabase sign-in with email and password
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: email.trim(), // Trim whitespace from email
+        password: password,   // Password is sent as is
       });
 
-      // Check if Supabase returned an error
+      // Handle potential errors returned from Supabase
       if (signInError) {
-        setError(signInError.message); // Display error on the page
+        const errorMessage = signInError.message;
+        setError(errorMessage); // Display the error message on the page
 
-        // Provide specific user feedback via toasts based on common errors
-        if (signInError.message === 'Invalid login credentials') {
+        // Provide more user-friendly feedback via toasts for common errors
+        if (errorMessage === 'Invalid login credentials') {
           toast.error("Login Failed", { description: "Incorrect email or password." });
-        } else if (signInError.message === 'Email not confirmed') {
+        } else if (errorMessage === 'Email not confirmed') {
           toast.warning("Confirmation Required", { description: "Please check your email and click the confirmation link first." });
-          // Keep the error message specific on the page
+          // Keep specific error message on page as well
           setError("Please confirm your email address first.");
         } else {
-          // Generic error toast for other Supabase auth errors
-          toast.error("Login Failed", { description: signInError.message });
+          // Show generic error toast for other Supabase auth issues
+          toast.error("Login Failed", { description: errorMessage });
         }
       } else {
-        // Login successful!
+        // --- Login Successful ---
         toast.success("Login Successful", { description: "Redirecting..." });
 
-        // --- CRITICAL FOR REDIRECTION ---
-        // This refresh is essential. It tells Next.js to re-fetch server components
-        // and re-evaluate layouts based on the updated authentication state (cookie).
-        // The ACTUAL redirection logic should then be triggered by either:
-        // 1. The AuthProvider updating context, causing app/page.tsx to redirect.
-        // 2. The AuthProvider updating context, causing app/(app)/layout.tsx to grant access.
+        // --- Redirection Logic ---
+        // router.refresh() updates server state/cookies.
+        // router.push() explicitly navigates. While refresh + AuthProvider/Layouts
+        // is standard, including push ensures navigation if the other method fails.
         router.refresh();
-        router.push("/dashboard")
-        // --- END CRITICAL SECTION ---
-
-        // NOTE: We DON'T typically put router.push('/dashboard') here.
-        // Relying on router.refresh() and the AuthProvider/Layout checks
-        // is the standard way in the App Router to handle auth state changes.
-        // If redirection fails, the problem is likely in AuthProvider or the Layouts.
+        router.push("/dashboard"); // Force navigation to dashboard
+        // --- End Redirection Logic ---
       }
     } catch (err: any) {
-      // Catch unexpected errors (e.g., network issues)
+      // Catch unexpected errors during the fetch/login process
       console.error("Unexpected Login Error:", err);
-      setError("An unexpected error occurred during login.");
+      setError("An unexpected error occurred. Please try again.");
       toast.error("Login Error", { description: "An unexpected error occurred. Please try again." });
     } finally {
-      setIsLoading(false); // Ensure loading state is always reset
+      setIsLoading(false); // Ensure loading state is always turned off
     }
   };
 
-  // --- Render the Login Form ---
+  // --- Render Component ---
   return (
-    <div className="flex items-center justify-center min-h-screen bg-muted/40"> {/* Use muted background */}
-      <Card className="w-full max-w-sm mx-4 shadow-lg"> {/* Add shadow */}
-        <CardHeader className="space-y-1 text-center"> {/* Center header text */}
-          <CardTitle className="text-2xl font-bold tracking-tight">Login</CardTitle>
-          <CardDescription>Enter your email and password to access your account.</CardDescription>
+    // Outer container: centers content vertically and horizontally, provides nice background
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted/30 px-4 py-12">
+      <Card className="w-full max-w-sm shadow-xl border-border/60 rounded-lg"> {/* Rounded corners */}
+
+        {/* Card Header: Contains Logo, Title, Description - Centered */}
+        <CardHeader className="flex flex-col items-center text-center space-y-4 pt-8 pb-6">
+          {/* Logo Integration */}
+          <Link href="/" aria-label="Nypty Home"> {/* Link logo */}
+            <Image
+                src="/logo1.svg"     // Path relative to /public
+                alt="Nypty Logo"
+                width={140}          // ** Adjust width as needed **
+                height={45}         // ** Adjust height as needed **
+                priority             // Load logo early
+            />
+          </Link>
+          {/* Title and Description below logo */}
+          <div>
+             <CardTitle className="text-2xl font-semibold tracking-tight">Welcome Back</CardTitle>
+             <CardDescription className="text-sm text-muted-foreground mt-1">
+                 Sign in to continue to Nypty
+             </CardDescription>
+          </div>
         </CardHeader>
+
+        {/* Card Content: Contains the form */}
         <CardContent>
-          <form onSubmit={handleLogin} className="grid gap-4">
+          <form onSubmit={handleLogin} className="grid gap-5"> {/* Spacing between form elements */}
+
             {/* Email Input Field */}
-            <div className="grid gap-2">
+            <div className="grid gap-1.5">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="you@example.com"
-                required
-                autoComplete="email"
+                required // HTML5 validation
+                autoComplete="email" // Browser autofill hint
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading} // Disable input when loading
+                disabled={isLoading} // Disable input while loading
               />
             </div>
 
             {/* Password Input Field */}
-            <div className="grid gap-2">
+            <div className="grid gap-1.5">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                required
-                autoComplete="current-password"
+                placeholder="••••••••" // Use placeholder dots
+                required // HTML5 validation
+                autoComplete="current-password" // Browser autofill hint
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading} // Disable input when loading
+                disabled={isLoading} // Disable input while loading
               />
             </div>
 
             {/* Display Error Message (if any) */}
             {error && (
-              <p className="text-sm font-medium text-destructive bg-destructive/10 p-2 rounded-md"> {/* Style error */}
+              <p className="text-sm font-medium text-destructive px-1 text-center"> {/* Centered error */}
                 {error}
               </p>
             )}
 
             {/* Login Button */}
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full mt-2" size="lg" disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging in...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing In...
                 </>
               ) : (
-                'Login'
+                'Sign In'
               )}
             </Button>
 
-            {/* Link to Sign Up Page */}
-            <div className="mt-4 text-center text-sm">
-              Don't have an account?{' '}
-              <Link href="/signup" className="underline text-primary hover:text-primary/90">
-                Sign up
-              </Link>
+            {/* Links Section */}
+            <div className="mt-4 space-y-2 text-center text-sm">
+               {/* Link to Sign Up */}
+              <div>
+                Don't have an account?{' '}
+                <Link href="/signup" className="font-medium text-primary underline-offset-4 hover:underline">
+                  Sign up
+                </Link>
+              </div>
+               {/* Link to Forgot Password */}
+              <div>
+                <Link href="/forgot-password" className="text-xs text-muted-foreground underline-offset-4 hover:underline hover:text-primary">
+                  Forgot your password?
+                </Link>
+              </div>
             </div>
 
-            {/* Optional: Link to Forgot Password (Implement later if needed) */}
-            {/*
-            <div className="mt-2 text-center text-sm">
-              <Link href="/forgot-password" className="underline text-xs text-muted-foreground hover:text-primary">
-                Forgot password?
-              </Link>
-            </div>
-            */}
           </form>
         </CardContent>
       </Card>
     </div>
   );
-}   
+}

@@ -1,10 +1,11 @@
 // components/Sidebar.tsx
-'use client'; // Needed for onClick handler
+'use client'; // Needed for onClick handler and hooks
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button'; // Use Shadcn Button
-import { usePathname } from 'next/navigation'; // Hook to detect active route
-import { cn } from '@/lib/utils'; // Utility for conditional classes
+import Image from 'next/image'; // Import the Image component
+import { Button } from '@/components/ui/button';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Package,
@@ -12,18 +13,17 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Receipt, // Billing icon
+  Receipt,
 } from 'lucide-react';
 
 interface SidebarProps {
-  userEmail?: string;
-  onSignOut: () => void; // Function passed from AppLayout
+  userEmail?: string; // Keep prop definition even if not displayed currently
+  onSignOut: () => void;
 }
 
 export default function Sidebar({ userEmail, onSignOut }: SidebarProps) {
-  const pathname = usePathname(); // Get current path
+  const pathname = usePathname();
 
-  // Define menu items
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/store-setup', label: 'Store Setup', icon: Store },
@@ -34,27 +34,34 @@ export default function Sidebar({ userEmail, onSignOut }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-60 flex-shrink-0 bg-card text-card-foreground border-r flex flex-col h-screen print:hidden"> {/* Hide on print */}
-      {/* Header */}
-      <div className="p-4 border-b h-16 flex flex-col justify-center">
-        <h2 className="text-lg font-semibold tracking-tight">CRM App</h2>
-        {userEmail && (
-          <p className="text-xs text-muted-foreground truncate" title={userEmail}>
-            {userEmail}
-          </p>
-        )}
+    <aside className="w-60 flex-shrink-0 bg-card text-card-foreground border-r flex flex-col h-screen print:hidden">
+      {/* Header - Updated with ONLY Logo */}
+      <div className="p-4 border-b h-16 flex items-center justify-start"> {/* Adjusted alignment */}
+        {/* Link wrapping only the logo */}
+        <Link href="/dashboard" className='flex items-center'>
+            <Image
+                src="/logo1.svg"      // Path relative to /public directory
+                alt="Nypty Logo"      // Alt text for accessibility
+                width={120}          // ** Adjust width as needed ** (Example, make it wider)
+                height={40}         // ** Adjust height as needed ** (Maintain aspect ratio)
+                className="h-10 w-auto" // Control rendered height, auto width
+                priority             // Prioritize loading
+            />
+            {/* "Nypty" text span removed */}
+        </Link>
+        {/* User email also removed for cleaner look, can be added back if desired */}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto"> {/* Reduced padding */}
+      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard'); // Basic active check
+          const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard' && item.href !== '/');
           return (
             <Button
               key={item.href}
-              variant={isActive ? "secondary" : "ghost"} // Highlight active link
+              variant={isActive ? "secondary" : "ghost"}
               className="w-full justify-start"
-              asChild // Render as Link child
+              asChild
             >
               <Link href={item.href}>
                 <item.icon className={cn("mr-2 h-4 w-4", isActive ? "" : "text-muted-foreground")} />

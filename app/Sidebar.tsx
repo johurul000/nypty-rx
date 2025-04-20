@@ -1,10 +1,11 @@
 // components/Sidebar.tsx
-'use client'; // Needed for onClick handler
+'use client';
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button'; // Use Shadcn Button
-import { usePathname } from 'next/navigation'; // Hook to detect active route
-import { cn } from '@/lib/utils'; // Utility for conditional classes
+import Image from 'next/image'; // Import next/image
+import { Button } from '@/components/ui/button';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Package,
@@ -12,18 +13,17 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Receipt, // Billing icon
+  Receipt,
 } from 'lucide-react';
 
 interface SidebarProps {
   userEmail?: string;
-  onSignOut: () => void; // Function passed from AppLayout
+  onSignOut: () => void;
 }
 
 export default function Sidebar({ userEmail, onSignOut }: SidebarProps) {
-  const pathname = usePathname(); // Get current path
+  const pathname = usePathname();
 
-  // Define menu items
   const menuItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/store-setup', label: 'Store Setup', icon: Store },
@@ -35,26 +35,38 @@ export default function Sidebar({ userEmail, onSignOut }: SidebarProps) {
 
   return (
     <aside className="w-60 flex-shrink-0 bg-card text-card-foreground border-r flex flex-col h-screen print:hidden"> {/* Hide on print */}
-      {/* Header */}
-      <div className="p-4 border-b h-16 flex flex-col justify-center">
-        <h2 className="text-lg font-semibold tracking-tight">CRM App</h2>
-        {userEmail && (
-          <p className="text-xs text-muted-foreground truncate" title={userEmail}>
+      {/* Header Section - Updated with Logo */}
+      <div className="p-4 border-b h-16 flex items-center"> {/* Use items-center */}
+        <Link href="/dashboard" className='flex items-center gap-2'> {/* Logo links to dashboard */}
+            <Image
+                src="/logo1.svg"     // Path relative to the 'public' directory
+                alt="Nypty Logo"     // Accessibility text
+                width={100}          // ** ADJUST WIDTH AS NEEDED **
+                height={32}         // ** ADJUST HEIGHT AS NEEDED **
+                priority             // Load logo faster
+            />
+            {/* Optional: Add text next to logo if desired */}
+            {/* <span className="text-lg font-semibold tracking-tight">Nypty</span> */}
+        </Link>
+
+        {/* You might remove or reposition the userEmail if the logo takes up space */}
+        {/* {userEmail && (
+          <p className="text-xs text-muted-foreground truncate mt-1" title={userEmail}>
             {userEmail}
           </p>
-        )}
+        )} */}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto"> {/* Reduced padding */}
+      {/* Navigation Menu */}
+      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard'); // Basic active check
+          const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard');
           return (
             <Button
               key={item.href}
-              variant={isActive ? "secondary" : "ghost"} // Highlight active link
+              variant={isActive ? "secondary" : "ghost"} // Highlight active route
               className="w-full justify-start"
-              asChild // Render as Link child
+              asChild // Render as a Link component
             >
               <Link href={item.href}>
                 <item.icon className={cn("mr-2 h-4 w-4", isActive ? "" : "text-muted-foreground")} />
@@ -65,7 +77,7 @@ export default function Sidebar({ userEmail, onSignOut }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer - Sign Out */}
+      {/* Footer - Sign Out Button */}
       <div className="p-4 mt-auto border-t">
         <Button variant="outline" className="w-full justify-start" onClick={onSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
