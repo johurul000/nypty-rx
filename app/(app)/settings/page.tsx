@@ -1,7 +1,7 @@
 // app/(app)/settings/page.tsx
 'use client';
 
-import { useState, useEffect, useCallback, ChangeEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthProvider';
 import { UserSettings, SettingsFormData } from '@/types'; // Import types
@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, User, Store, Bell, Palette, LogOut, Save, AlertCircle } from 'lucide-react';
+import { Loader2, User, Store, Palette, LogOut, Save, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle'; // Import the theme toggle component
 
@@ -102,12 +102,12 @@ export default function SettingsPage() {
          }));
     };
 
-    const handleSwitchChange = (field: keyof Pick<SettingsFormData, 'sync_enabled'>, checked: boolean) => {
-         setSettings(prev => ({
-             ...prev,
-             [field]: checked,
-         }));
-    };
+    // const handleSwitchChange = (field: keyof Pick<SettingsFormData, 'sync_enabled'>, checked: boolean) => {
+    //      setSettings(prev => ({
+    //          ...prev,
+    //          [field]: checked,
+    //      }));
+    // };
 
 
     // --- Handle Save Changes ---

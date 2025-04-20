@@ -4,7 +4,7 @@
 import { useState, useEffect, ChangeEvent, FormEvent, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthProvider';
-import { Store, MasterMedicine, InventoryItem } from '@/types';
+import { MasterMedicine, InventoryItem } from '@/types';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { DatePicker } from "@/components/ui/date-picker"; // Shadcn Date Picker
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Loader2, PackagePlus, Search, AlertCircle, Check, ChevronsUpDown, CalendarIcon } from 'lucide-react';
+import { Loader2, PackagePlus, AlertCircle, Check, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns'; // For date formatting
 import { useDebounce } from '@/hooks/useDebounce'; // Assuming you create/use a debounce hook
 

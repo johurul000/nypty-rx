@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'; // Import if needed for navigation 
 import { createClient } from '@/lib/supabase/client';
 import { Label } from "@/components/ui/label"; // <--- ADD LABEL HERE (or ensure it's present)
 import { useAuth } from '@/context/AuthProvider';
-import { Store, InventoryItem } from '@/types'; // Ensure types are defined
+import { InventoryItem } from '@/types'; // Ensure types are defined
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";

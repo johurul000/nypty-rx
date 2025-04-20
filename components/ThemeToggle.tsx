@@ -17,7 +17,7 @@ export function ThemeToggle() {
   const { setTheme } = useTheme()
   // Add state to prevent hydration mismatch issues if rendering icons conditionally
   const [mounted, setMounted] = React.useState(false)
-  const { resolvedTheme } = useTheme() // Get the currently resolved theme
+  // const { resolvedTheme } = useTheme() // Get the currently resolved theme
 
   // useEffect only runs on the client, so now we can safely show the UI
   React.useEffect(() => {

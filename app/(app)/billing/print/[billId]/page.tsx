@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthProvider'; // Optional: for user context if needed
 import { Store, Sale, SaleItem } from '@/types';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Printer, ArrowLeft, AlertTriangle } from 'lucide-react';
@@ -33,7 +33,7 @@ export default function BillPrintPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const printableAreaRef = useRef<HTMLDivElement>(null); // Ref for the printable area
+    // const printableAreaRef = useRef<HTMLDivElement>(null); // Ref for the printable area
 
     useEffect(() => {
         const fetchBillData = async () => {

@@ -30,7 +30,7 @@ export default function DashboardPage() {
   const [inventoryCount, setInventoryCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [storeId, setStoreId] = useState<string | null>(null);
+  // const [storeId, setStoreId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +54,7 @@ export default function DashboardPage() {
 
         if (storeData) {
           setStore(storeData);
-          setStoreId(storeData.id); // Set storeId for inventory fetch
+          // setStoreId(storeData.id); // Set storeId for inventory fetch
 
           // 2. Fetch Inventory Count (only if store exists)
           const { count, error: countError } = await supabase
