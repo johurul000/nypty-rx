@@ -1,22 +1,24 @@
 // app/(app)/billing/page.tsx
 'use client';
 
-import { useState, useEffect, ChangeEvent, useCallback, useMemo, FormEvent } from 'react';
+import { useState, useEffect, useMemo, FormEvent } from 'react';
 import { useRouter } from 'next/navigation'; // <--- Make sure this import is present
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthProvider';
-import { Store, MasterMedicine, InventoryItem, BillItem } from '@/types';
+import { InventoryItem, BillItem } from '@/types';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Loader2, Search, AlertCircle, Check, ChevronsUpDown, XCircle, ShoppingCart, Receipt } from 'lucide-react';
+import { Loader2, Search, AlertCircle, ChevronsUpDown, XCircle, ShoppingCart, Receipt } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { PostgrestSingleResponse } from '@supabase/supabase-js';
+
 
 // ... rest of the component code
 // --- Helper Function for Currency Formatting ---
@@ -63,13 +65,18 @@ export default function BillingPage() {
              if (!user) { setIsLoadingStore(false); return; } // Exit if no user
              setIsLoadingStore(true);
              setError(null); // Clear previous errors
+             type StoreIdResult = {
+                id: string; // or number, depending on your Supabase schema
+              };
              try {
                  // Fetch only the ID of the store owned by the current user
-                 const { data, error: storeError } = await supabase
+                 const response: PostgrestSingleResponse<StoreIdResult> = await supabase
                      .from('stores')
                      .select('id')
                      .eq('user_id', user.id)
                      .single(); // Expect exactly one store per user
+
+                 const { data, error: storeError } = response;
 
                 // Handle case where store setup is required
                  if (storeError?.code === 'PGRST116') { // specific error code for "No rows found"
@@ -103,9 +110,27 @@ export default function BillingPage() {
                 return;
             }
             setIsSearchingInventory(true); // Set loading state for search
+            
             try {
+                type InventoryItemWithMedicine = {
+                    id: string;
+                    store_id: string;
+                    medicine_id: string;
+                    batch_number: string;
+                    quantity: number;
+                    purchase_price: number;
+                    mrp: number;
+                    expiry_date: string;
+                    created_at: string;
+                    updated_at: string;
+                    master_medicines: {
+                      name: string;
+                      manufacturer: string;
+                    }
+                }
+                
                 // Query inventory table
-                const { data, error } = await supabase
+                const response: PostgrestSingleResponse<InventoryItemWithMedicine[]> = await supabase
                     .from('inventory')
                     .select(`
                         *,
@@ -115,12 +140,14 @@ export default function BillingPage() {
                     .gt('quantity', 0) // IMPORTANT: Only select items with quantity greater than 0
                     .ilike('master_medicines.name', `%${debouncedSearchTerm}%`) // Case-insensitive search on medicine name
                     .order('expiry_date', { ascending: true }) // Optional: prioritize items expiring sooner
-                    .limit(15); // Limit results for performance
+                    .limit(15)  // Limit results for performance
+
+                    const { data, error } = response
 
                 if (error) throw error; // Throw error if Supabase query fails
 
                 // Further filter results client-side to exclude items already fully added to the bill
-                const billInventoryIds = new Set(billItems.map(item => item.inventoryItem.id));
+                // const billInventoryIds = new Set(billItems.map(item => item.inventoryItem.id));
                 const filteredResults = (data || []).filter(invItem => {
                     const itemInBill = billItems.find(bi => bi.inventoryItem.id === invItem.id);
                     if (!itemInBill) return true; // Include if not in bill
@@ -244,9 +271,19 @@ export default function BillingPage() {
             // --- INVOKE THE SUPABASE EDGE FUNCTION ---
             // Replace 'process-sale' if your function has a different name
             // Ensure the Edge Function handles atomicity (DB transaction) & returns { success: true, saleId: '...', bill_number: '...' }
-            const { data, error: functionError } = await supabase.functions.invoke('process-sale', {
+            type ProcessSaleResponse = {
+                success: boolean;
+                saleId?: string;
+                bill_number?: string;
+                message?: string; // optional field for server-side failure messages
+            };
+            
+
+            const { data, error: functionError } = await supabase.functions.invoke<ProcessSaleResponse>('process-sale', {
                 body: billDetails,
             });
+
+            console.log("Sale success data: ", data)
 
             if (functionError) {
                 // Handle errors specifically returned by the Edge Function invocation itself
@@ -273,6 +310,7 @@ export default function BillingPage() {
                  setBillItems([]);
                  setCustomerName('');
             }
+
             // Handle case where function succeeded but didn't return expected data
             else if (data && data.success) {
                  console.warn("Bill generation reported success but saleId was missing from response:", data);
